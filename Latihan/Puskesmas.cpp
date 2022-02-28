@@ -17,7 +17,7 @@
 
 using namespace std;
 
-static string LIST_PRIORITAS[] = {
+string LIST_PRIORITAS[] = {
     "pusingkebanyakantugas",
     "diare",
     "maag",
@@ -32,12 +32,12 @@ struct Kamar {
     };
 
     KamarNode *front;
-    int size;
+    int size = 0;
     int capacity;
 
     Kamar(int capacity) {
         front = NULL;
-        capacity = capacity;
+        this->capacity = capacity;
     }
 
     bool isEmpty() {
@@ -87,7 +87,7 @@ struct Puskesmas {
 
     PasienNode *front {nullptr};
     Kamar *kamar;
-    int size {0};
+    int size = 0;
 
     Puskesmas(int kamar_capacity) {
         kamar = new Kamar(kamar_capacity);
@@ -99,15 +99,23 @@ struct Puskesmas {
         newNode->prioritas = prioritas;
         newNode->prev = NULL;
         newNode->next = NULL;
+        cout << "Pasien atas nama " << nama_pasien << " terdaftar ke database." << endl;
 
         if (isEmpty()) {
-            front = newNode;
+            if(!(kamar->isFull())){
+                kamar->enqueue(nama_pasien, prioritas);
+                cout << "Pasien atas nama "<< nama_pasien << " Langsung masuk." << endl;
+            } else {
+                front = newNode;
+                cout << "Pasien atas nama " << nama_pasien << " mengantri." << endl;
+            }
         } else {
             if (!(kamar->isFull())){
                 kamar->enqueue(nama_pasien, prioritas);
+                cout << "Pasien atas nama "<< nama_pasien << " Langsung masuk." << endl;
             } else {
                 PasienNode *curr = front;
-                while (curr->next != NULL || curr->prioritas < prioritas) {
+                while (curr->next != NULL && curr->prioritas < prioritas) {
                     curr = curr->next;
                 }
                 if (curr->next == NULL && curr->prioritas < prioritas) {
@@ -124,15 +132,16 @@ struct Puskesmas {
                     curr->prev = newNode;
                 }
                 curr->next = newNode;
+                cout << "Pasien atas nama " << nama_pasien << " mengantri." << endl;
                 size++;
             }
         }
     }
 
     void nextKamar() {
+        kamar->dequeue();
         if (isEmpty()) return;
         PasienNode *curr = front;
-        kamar->dequeue();
         kamar->enqueue(curr->nama_pasien, curr->prioritas);
         curr->next->prev = curr->prev;
         front = curr->next;
@@ -150,5 +159,47 @@ struct Puskesmas {
 
 int main(int argc, char const *argv[])
 {
+    int n;
+    int data[4] {0};
+    scanf("%d", &n);
+    Puskesmas puskesmas(n);
+    while (scanf("%d", &n)!=EOF) {
+        if(n==1) {
+            char nama_pasien[20];
+            char prioritas[30];
+            scanf("%s", nama_pasien);
+            scanf("%s", prioritas);
+            switch (prioritas[0]) {
+                case 'p':
+                    puskesmas.addPasien(nama_pasien, 0);
+                    data[0]++;
+                    break;
+                case 'd':
+                    puskesmas.addPasien(nama_pasien, 1);
+                    data[1]++;
+                    break;
+                case 'm':
+                    puskesmas.addPasien(nama_pasien, 2);
+                    data[2]++;
+                    break;
+                case 'f':
+                    puskesmas.addPasien(nama_pasien, 3);
+                    data[3]++;
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            puskesmas.nextKamar();
+        }
+    }
+    while (!(puskesmas.kamar->isEmpty())) {
+        puskesmas.kamar->dequeue();
+    }
+    cout << "Data pasien harin ini:" << endl;
+    cout << "flu: " << data[0] << endl;
+    cout << "diare: " << data[1] << endl;
+    cout << "maag: " << data[2] << endl;
+    cout << "pusingkebanyakantugas: " << data[3] << endl; 
     return 0;
 }
