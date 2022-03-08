@@ -1,18 +1,10 @@
 /**
- * Implementasi ADT PriorityQueue menggunakan Linked List
- * [default: minimum priority]
- * 
- * Dibuat dan ditulis oleh Bayu Laksana
- * Dimodifikasi oleh Riski Ilyas
- * Implementasi untuk bahasa C
- * 
- * !!NOTE!!
- * cara menggunakan lihat pada fungsi main()
  */
 
 #include <stdlib.h>
 #include <stdbool.h>
 #include <iostream>
+#include <string.h>
 #include <stdio.h>
 
 using namespace std;
@@ -80,12 +72,12 @@ struct Kamar {
 
 struct Puskesmas {
     struct PasienNode {
-        string nama_pasien;
+        char* nama_pasien;
         int prioritas;
         PasienNode *next, *prev;
     };
 
-    PasienNode *front {nullptr};
+    PasienNode *front {NULL};
     Kamar *kamar;
     int size = 0;
 
@@ -93,7 +85,7 @@ struct Puskesmas {
         kamar = new Kamar(kamar_capacity);
     }
 
-    void addPasien(string nama_pasien, int prioritas) {
+    void addPasien(char* nama_pasien, int prioritas) {
         PasienNode *newNode = new PasienNode;
         newNode->nama_pasien = nama_pasien;
         newNode->prioritas = prioritas;
@@ -108,42 +100,43 @@ struct Puskesmas {
             } else {
                 front = newNode;
                 cout << "Pasien atas nama " << nama_pasien << " mengantri." << endl;
-            }
-        } else {
-            if (!(kamar->isFull())){
-                kamar->enqueue(nama_pasien, prioritas);
-                cout << "Pasien atas nama "<< nama_pasien << " Langsung masuk." << endl;
-            } else {
-                PasienNode *curr = front;
-                while (curr->next != NULL && curr->prioritas < prioritas) {
-                    curr = curr->next;
-                }
-                if (curr->next == NULL && curr->prioritas < prioritas) {
-                    curr->next = newNode;
-                    newNode->prev = curr;
-                }else if (curr == front) {
-                    newNode->next = front;
-                    front->prev = newNode;
-                    front = newNode;
-                } else {
-                    newNode->next = curr;
-                    newNode->prev = curr->prev;
-                    curr->prev->next = newNode;
-                    curr->prev = newNode;
-                }
-                curr->next = newNode;
-                cout << "Pasien atas nama " << nama_pasien << " mengantri." << endl;
                 size++;
             }
+        } else {
+            PasienNode *curr = front;
+            if (prioritas < front->prioritas || (prioritas==front->prioritas && strcmp(nama_pasien, front->nama_pasien)<0)){
+                newNode->next = front;
+                front->prev=newNode;
+                front = newNode;
+            } else {
+                while (curr->next!=NULL && curr->next->prioritas<prioritas){
+                    curr=curr->next;
+                    newNode->prev=curr;
+                    newNode->next=curr->next;
+                    curr->next->prev=newNode;
+                    curr->next=newNode;
+                }
+            }
+            
+            cout << "Pasien atas nama " << nama_pasien << " mengantri." << endl;
+            size++;
+            if (kamar->isFull()) return;
+            kamar->enqueue(front->nama_pasien, front->prioritas);
+            cout << "Pasien atas nama "<< nama_pasien << " Langsung masuk." << endl;
+            PasienNode *temp = front;
+            temp->next->prev = NULL;
+            front = temp->next;
+            free(temp);
+            size--;
         }
     }
 
     void nextKamar() {
         kamar->dequeue();
-        if (isEmpty()) return;
+        if (!isEmpty()) return;
         PasienNode *curr = front;
         kamar->enqueue(curr->nama_pasien, curr->prioritas);
-        curr->next->prev = curr->prev;
+        curr->next->prev = NULL;
         front = curr->next;
         curr->next = NULL;
         cout << "Pasien atas nama " << curr->nama_pasien << " masuk dari antrian." << endl;
@@ -197,9 +190,9 @@ int main(int argc, char const *argv[])
         puskesmas.kamar->dequeue();
     }
     cout << "Data pasien harin ini:" << endl;
-    cout << "flu: " << data[0] << endl;
-    cout << "diare: " << data[1] << endl;
-    cout << "maag: " << data[2] << endl;
-    cout << "pusingkebanyakantugas: " << data[3] << endl; 
+    cout << "flu: " << data[3] << endl;
+    cout << "diare: " << data[2] << endl;
+    cout << "maag: " << data[1] << endl;
+    cout << "pusingkebanyakantugas: " << data[0] << endl; 
     return 0;
 }
